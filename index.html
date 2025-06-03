@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Study Time</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background-color: #000000;
+      overflow: hidden;
+    }
+    .raindrop {
+      position: fixed;
+      top: -10px;
+      width: 2px;
+      height: 15px;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 50%;
+      animation-name: fall;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+    }
+    @keyframes fall {
+      to {
+        transform: translateY(100vh);
+      }
+    }
+    .star {
+      position: fixed;
+      width: 2px;
+      height: 2px;
+      background: white;
+      border-radius: 50%;
+      opacity: 0.8;
+      animation-name: twinkle;
+      animation-iteration-count: infinite;
+      animation-timing-function: ease-in-out;
+    }
+    @keyframes twinkle {
+      0%, 100% {
+        opacity: 0.8;
+      }
+      50% {
+        opacity: 0.2;
+      }
+    }
+    #menu {
+      position: fixed;
+      top: 50%;
+      right: 0;
+      transform: translateY(-50%);
+      background: rgba(30, 30, 30, 0.8);
+      border-radius: 8px 0 0 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: opacity 0.5s ease;
+      opacity: 1;
+      z-index: 1000;
+      user-select: none;
+    }
+    #menu.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    #menu button {
+      background: #222;
+      border: none;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s ease;
+    }
+    #menu button:hover {
+      background: #555;
+    }
+    .bubble {
+      position: fixed;
+      top: -50px;
+      width: 30px;
+      height: 30px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-color: rgba(0, 162, 255, 0.5);
+      border-radius: 50%;
+      box-shadow: 0 0 5px rgba(0, 110, 255, 0.7);
+      opacity: 0.9;
+      animation-name: glideFall;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+    }
+    @keyframes glideFall {
+      0% {
+        transform: translateX(0) translateY(0) rotate(0deg);
+        opacity: 0.8;
+      }
+      50% {
+        transform: translateX(20px) translateY(50vh) rotate(45deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateX(-20px) translateY(120vh) rotate(90deg);
+        opacity: 0.8;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="menu">
+    <button id="rainBtn">Rain</button>
+    <button id="starBtn">Star Shine</button>
+    <button id="bubblesBtn">Bubbles</button>
+  </div>
+  <script>
+    const menu = document.getElementById('menu');
+    let hideTimeout;
+
+    function showMenu() {
+      clearTimeout(hideTimeout);
+      menu.classList.remove('hidden');
+      hideTimeout = setTimeout(() => {
+        menu.classList.add('hidden');
+      }, 2000);
+    }
+
+    // Show menu on mouse enter anywhere near the right edge of the screen
+    document.body.addEventListener('mousemove', (e) => {
+      if (e.clientX > window.innerWidth - 50) {
+        showMenu();
+      }
+    });
+
+    menu.addEventListener('mouseenter', () => {
+      showMenu();
+    });
+
+    menu.addEventListener('mouseleave', () => {
+      hideTimeout = setTimeout(() => {
+        menu.classList.add('hidden');
+      }, 2000);
+    });
+
+    // Initial show menu and start hide timer
+    showMenu();
+
+    const numDrops = 100;
+    let currentEffect = 'rain';
+
+    function clearEffect() {
+      const raindrops = document.querySelectorAll('.raindrop');
+      raindrops.forEach(drop => drop.remove());
+      const stars = document.querySelectorAll('.star');
+      stars.forEach(star => star.remove());
+      const bubbles = document.querySelectorAll('.bubble');
+      bubbles.forEach(bubble => bubble.remove());
+    }
+
+    function createRain() {
+      for (let i = 0; i < numDrops; i++) {
+        const drop = document.createElement('div');
+        drop.className = 'raindrop';
+        drop.style.left = Math.random() * 100 + 'vw';
+        drop.style.animationDuration = (Math.random() * 3 + 3) + 's';
+        drop.style.animationDelay = (Math.random() * 5) + 's';
+        document.body.appendChild(drop);
+      }
+    }
+
+    function createStars() {
+      for (let i = 0; i < numDrops; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.left = Math.random() * 100 + 'vw';
+        star.style.top = Math.random() * 100 + 'vh';
+        star.style.animationDuration = (Math.random() * 3 + 2) + 's';
+        star.style.animationDelay = (Math.random() * 5) + 's';
+        document.body.appendChild(star);
+      }
+    }
+
+    function createbubbles() {
+      for (let i = 0; i < numDrops; i++) {
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        bubble.style.left = Math.random() * 100 + 'vw';
+        // Slow down the animation duration by increasing the base duration
+        bubble.style.animationDuration = (Math.random() * 10 + 10) + 's';
+        bubble.style.animationDelay = (Math.random() * 10) + 's';
+        bubble.style.width = (20 + Math.random() * 20) + 'px';
+        bubble.style.height = bubble.style.width;
+        document.body.appendChild(bubble);
+      }
+    }
+
+    function switchEffect(effect) {
+      if (effect === currentEffect) return;
+      clearEffect();
+      if (effect === 'rain') {
+        createRain();
+      } else if (effect === 'star') {
+        createStars();
+      } else if (effect === 'bubbles') {
+        createbubbles();
+      }
+      currentEffect = effect;
+    }
+
+    document.getElementById('rainBtn').addEventListener('click', () => {
+      switchEffect('rain');
+    });
+
+    document.getElementById('starBtn').addEventListener('click', () => {
+      switchEffect('star');
+    });
+
+    document.getElementById('bubblesBtn').addEventListener('click', () => {
+      switchEffect('bubbles');
+    });
+
+    // Initialize with rain effect
+    createRain();
+  </script>
+</body>
+</html>
