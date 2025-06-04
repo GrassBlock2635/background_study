@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Game of Life</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #222;
+    color: #eee;
+    margin: 0;
+    padding: 20px;
+  }
+  h1 {
+    margin-bottom: 10px;
+  }
+  #gameCanvas {
+    background-color: #111;
+    display: block;
+    margin: 20px auto;
+    border: 1px solid #555;
+    width: 900px;
+    height: 600px;
+  }
+  #controls {
+    margin-top: 15px;
+  }
+  button {
+    background-color: #444;
+    border: none;
+    color: #eee;
+    padding: 15px 30px;
+    margin: 0 8px;
+    font-size: 20px;
+    cursor: pointer;
+    border-radius: 6px;
+  }
+  button:hover {
+    background-color: #666;
+  }
+</style>
+</head>
+<body>
+<h1 style="font-family: Verdana">Conway's Game of Life</h1>
+  <canvas id="gameCanvas" width="900" height="600"></canvas>
+<div id="controls">
+  <button id="startBtn">Start</button>
+  <button id="pauseBtn" disabled>Pause</button>
+  <button id="resetBtn">Reset</button>
+  <label for="speedRange" style="color:#eee; margin-left: 10px;">Speed:</label>
+  <input type="range" id="speedRange" min="1" max="10" value="5" style="vertical-align: middle;">
+  <button id="backBtn">Back</button>
+</div>
+
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+
+  const cellSize = 15;
+  const cols = Math.floor(canvas.width / cellSize);
+  const rows = Math.floor(canvas.height / cellSize);
+
+  let grid = createGrid();
+  let animationId = null;
+  let running = false;
+  let speed = 5; // Default speed (1 slowest, 10 fastest)
+  let lastUpdateTime = 0;
+
+  function createGrid() {
+    let arr = new Array(rows);
+    for (let i = 0; i < rows; i++) {
+      arr[i] = new Array(cols).fill(0);
+    }
+    return arr;
+  }
+
+  function drawGrid() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        if (grid[row][col] === 1) {
+          ctx.fillStyle = '#fff';
+          ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
+        } else {
+          ctx.fillStyle = '#111';
+          ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
+        }
+        ctx.strokeStyle = '#222';
+        ctx.strokeRect(col * cellSize, row * cellSize, cellSize, cellSize);
+      }
+    }
+  }
+
+  function getNeighborCount(row, col) {
+    let count = 0;
+    for (let i = -1; i <= 1; i++) {
+      for (let j = -1; j <= 1; j++) {
+        if (i === 0 && j === 0) continue;
+        let r = row + i;
+        let c = col + j;
+        if (r >= 0 && r < rows && c >= 0 && c < cols) {
+          count += grid[r][c];
+        }
+      }
+    }
+    return count;
+  }
+
+  function updateGrid() {
+    let newGrid = createGrid();
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        let neighbors = getNeighborCount(row, col);
+        if (grid[row][col] === 1) {
+          if (neighbors === 2 || neighbors === 3) {
+            newGrid[row][col] = 1;
+          } else {
+            newGrid[row][col] = 0;
+          }
+        } else {
+          if (neighbors === 3) {
+            newGrid[row][col] = 1;
+          }
+        }
+      }
+    }
+    grid = newGrid;
+  }
+
+  function gameLoop(timestamp) {
+    if (!lastUpdateTime) lastUpdateTime = timestamp;
+    const elapsed = timestamp - lastUpdateTime;
+    const interval = 1000 / speed; // milliseconds per update
+
+    if (elapsed > interval) {
+      updateGrid();
+      drawGrid();
+      lastUpdateTime = timestamp;
+    }
+    animationId = requestAnimationFrame(gameLoop);
+  }
+
+  function startGame() {
+    if (!running) {
+      running = true;
+      animationId = requestAnimationFrame(gameLoop);
+      startBtn.disabled = true;
+      pauseBtn.disabled = false;
+    }
+  }
+
+  function pauseGame() {
+    if (running) {
+      running = false;
+      cancelAnimationFrame(animationId);
+      startBtn.disabled = false;
+      pauseBtn.disabled = true;
+    }
+  }
+
+  function resetGame() {
+    pauseGame();
+    grid = createGrid();
+    drawGrid();
+  }
+
+  // Toggle cell state on click
+  canvas.addEventListener('click', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const col = Math.floor(x / cellSize);
+    const row = Math.floor(y / cellSize);
+    grid[row][col] = grid[row][col] ? 0 : 1;
+    drawGrid();
+  });
+
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const speedRange = document.getElementById('speedRange');
+
+  startBtn.addEventListener('click', startGame);
+  pauseBtn.addEventListener('click', pauseGame);
+  resetBtn.addEventListener('click', resetGame);
+
+  speedRange.addEventListener('input', (e) => {
+    speed = parseInt(e.target.value, 10);
+  });
+
+  // Initial draw
+  drawGrid();
+
+  document.getElementById('backBtn').addEventListener('click', () => {
+      window.location.href = 'index.html';
+  });
+</script>
+</body>
+</html>
